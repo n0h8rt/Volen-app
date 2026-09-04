@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Волен · MVP: главная, ски-пасс, парковка</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f2f3f5; --ink:#21201f; --mute:#73726e; --line:#e8e8e6;
+  --blue:#1677ff; --gold:#ffcc00; --go:#118c4f; --hot:#e8572a;
+  --ui:"Golos Text",system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--ui);background:#dcdfe4;color:var(--ink);-webkit-font-smoothing:antialiased}
+button,input{font-family:inherit}button{cursor:pointer;border:0;background:none}
+.page{display:grid;grid-template-columns:minmax(420px,470px) 1fr;min-height:100vh}
+.stage{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px 8px;background:#cfd4db}
+.kicker{font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--blue)}
+.stage h1{font-size:18px;text-align:center;letter-spacing:-.03em}
+.sp{font-size:12px;color:#5c6168;text-align:center;max-width:380px;line-height:1.45}
+.scenarios{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:400px}
+.scenarios button{font-size:11px;padding:7px 10px;border-radius:999px;background:#fff;font-weight:700;border:1px solid #d5d8de}
+.phone{width:390px;height:844px;background:#1a1a1a;border-radius:46px;padding:10px;box-shadow:0 24px 70px #0004}
+.phone-inner{width:100%;height:100%;border-radius:36px;overflow:hidden;position:relative;background:var(--bg)}
+.homebar{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);width:120px;height:4px;background:#111;border-radius:4px;opacity:.4;z-index:60}
+.app{position:absolute;inset:0;display:flex;flex-direction:column}
+.status{height:46px;padding:12px 24px 0;display:flex;justify-content:space-between;font-size:12px;font-weight:700}
+.body{flex:1;overflow:auto;padding:0 16px 88px}
+.body::-webkit-scrollbar{width:0}
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:78px;padding:6px 8px 16px;background:#fff;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);z-index:20}
+.tabbar button{color:#8b8a86;font-size:10px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:3px}
+.tabbar button svg{width:22px;height:22px}
+.tabbar button.on{color:var(--blue)}
+.h1{font-size:26px;font-weight:800;letter-spacing:-.04em;line-height:1.15}
+.sub{font-size:14px;color:var(--mute);margin-top:6px;line-height:1.45}
+.hero{margin:8px 0 18px}
+.brand{font-size:12px;font-weight:800;letter-spacing:.16em;color:var(--blue);margin-bottom:8px}
+.btn{height:52px;width:100%;border-radius:16px;font-weight:800;font-size:16px}
+.btn-b{background:var(--blue);color:#fff}
+.btn-y{background:var(--gold);color:#111}
+.btn-w{background:#fff;border:1px solid var(--line)}
+.btn-more{background:#e8f1ff;color:var(--blue)}
+.field{background:#fff;border:1px solid var(--line);border-radius:14px;height:52px;display:flex;align-items:center;padding:0 14px;margin:8px 0;gap:8px}
+.field span{font-size:12px;font-weight:700;color:var(--mute);width:52px}
+.field input{border:0;outline:0;flex:1;font-size:16px;font-weight:700;background:transparent;width:100%}
+.otp{display:flex;gap:8px;justify-content:center;margin:20px 0}
+.otp input{width:56px;height:64px;border-radius:14px;border:1px solid var(--line);text-align:center;font-size:24px;font-weight:800;background:#fff}
+.hint{font-size:12px;color:var(--mute);line-height:1.4;margin-top:10px}
+.ok{color:var(--go);font-weight:700}.warn{color:var(--hot);font-weight:700}
+.wallet{background:linear-gradient(160deg,#1677ff 0%,#0f5fd6 55%,#0a4bb0 100%);color:#fff;border-radius:22px;padding:18px 18px 16px;margin:8px 0 12px;position:relative;overflow:hidden}
+.wallet:before{content:"";position:absolute;right:-30px;top:-40px;width:140px;height:140px;border-radius:50%;background:#fff2}
+.wallet .k{font-size:12px;opacity:.85;font-weight:700}
+.wallet .sum{font-size:32px;font-weight:800;margin:8px 0 4px;letter-spacing:-.04em}
+.wallet .row2{display:flex;justify-content:space-between;font-size:13px;opacity:.95}
+.p-wallet{background:linear-gradient(160deg,#21201f,#3a3936)}
+.amt{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+.amt button{height:48px;border-radius:14px;background:#fff;font-weight:800;border:1px solid var(--line)}
+.amt button.on{background:var(--gold);border-color:var(--gold)}
+.card{background:#fff;border-radius:16px;padding:14px;margin-bottom:8px;box-shadow:0 1px 3px #0000000c;width:100%;text-align:left}
+.card b{display:block;font-size:15px}
+.meta{font-size:12px;color:var(--mute);margin-top:3px;line-height:1.35}
+.row{display:flex;justify-content:space-between;padding:8px 0;font-size:14px}
+.box{background:#fff;border-radius:16px;padding:14px;margin:8px 0;box-shadow:0 1px 2px #0000000a}
+.back{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700;margin:2px 0 12px;color:var(--blue)}
+.tx{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--line);font-size:14px}
+.tx:last-child{border:0}
+.sheet{position:absolute;inset:0;background:#0005;z-index:40;display:flex;align-items:flex-end}
+.panel{background:#fff;border-radius:22px 22px 0 0;padding:10px 16px 28px;width:100%}
+.handle{width:36px;height:4px;background:#ddd;border-radius:4px;margin:6px auto 12px}
+.payhead{height:120px;border-radius:16px;background:#f6f7f8;display:flex;flex-direction:column;align-items:center;justify-content:center;margin-bottom:12px}
+.done{width:64px;height:64px;border-radius:50%;background:var(--gold);display:grid;place-items:center;font-size:28px;margin:20px auto 12px}
+.link{color:var(--blue);font-weight:700;font-size:13px;margin-top:12px}
+.api{font-family:ui-monospace,Menlo,monospace;font-size:9px;font-weight:700;padding:5px 7px;border-radius:8px;margin:0 0 10px;background:#e7f6ee;color:#0d6a3c;word-break:break-all}
+.docs{padding:20px 36px 80px;max-width:880px}
+.docs h2{font-size:24px;margin-bottom:8px}.docs h3{margin:22px 0 8px;font-size:16px}
+.docs p,.docs li{font-size:14px;line-height:1.55;color:#3a3a38}
+.docs .lead{color:#6a6966;margin-bottom:14px}
+.docs ul,.docs ol{padding-left:18px}
+.docs code{font-size:12px;background:#f3f3f1;padding:1px 5px;border-radius:4px}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0}
+.tbl th,.tbl td{border:1px solid #e4e4e1;padding:8px;text-align:left;vertical-align:top}
+.tbl th{background:#f6f6f4}
+.money{background:#fff;border-radius:16px;padding:14px 16px;margin:12px 0;border:1px solid #e8e8e6}
+.money .big{font-size:28px;font-weight:800;letter-spacing:-.04em}
+.topbar{padding:16px 36px 0}
+.tabs{display:flex;gap:4px;background:#fff;padding:4px;border-radius:12px;width:fit-content;flex-wrap:wrap}
+.tabs button{padding:8px 12px;border-radius:9px;font-weight:700;font-size:13px;color:#7a7975}
+.tabs button.on{background:#21201f;color:#fff}
+
+.tophead{display:flex;justify-content:space-between;align-items:center;padding:4px 0 12px}
+.logo{font-size:13px;font-weight:800;letter-spacing:.18em;color:var(--blue)}
+.pill{height:32px;padding:0 12px;border-radius:999px;background:#fff;font-size:12px;font-weight:700;border:1px solid var(--line)}
+.toggle{display:grid;grid-template-columns:1fr 1fr;background:#fff;border-radius:14px;padding:4px;margin-bottom:14px;box-shadow:0 1px 2px #0000000a}
+.toggle button{height:40px;border-radius:11px;font-weight:800;font-size:14px;color:#7a7975}
+.toggle button.on{background:#21201f;color:#fff}
+.wx{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.wx .deg{font-size:28px;font-weight:800;letter-spacing:-.04em}
+.act{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:#fff;border-radius:20px;padding:16px;margin-bottom:10px;box-shadow:0 1px 3px #0000000c}
+.act .ico{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;flex:none}
+.act .ico svg{width:26px;height:26px}
+.act.skip .ico{background:#e8f1ff;color:var(--blue)}
+.act.park .ico{background:#21201f;color:#ffcc00}
+.act b{display:block;font-size:17px;font-weight:800}
+.act span{display:block;font-size:13px;color:var(--mute);margin-top:2px}
+.act .chev{margin-left:auto;color:#c4c3bf;font-size:22px;font-weight:400}
+.guest{background:#fff8dc;border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.4;margin:10px 0}
+.guest b{display:block;margin-bottom:2px}
+.hero-photo{position:relative;height:176px;border-radius:20px;overflow:hidden;margin:0 0 12px;background:#cfd4db}
+.hero-photo img{width:100%;height:100%;object-fit:cover;display:block}
+.hero-photo .veil{position:absolute;inset:0;background:linear-gradient(180deg,#0000 30%,#000a)}
+.hero-photo .cap{position:absolute;left:14px;right:14px;bottom:12px;color:#fff}
+.hero-photo .cap em{font-style:normal;font-size:11px;font-weight:800;opacity:.9}
+.hero-photo .cap b{display:block;font-size:22px;letter-spacing:-.04em;margin-top:2px}
+.facts{display:flex;gap:6px;margin:0 0 12px;overflow:auto}
+.facts::-webkit-scrollbar{height:0}
+.facts i{flex:none;background:#fff;padding:8px 11px;border-radius:12px;font-style:normal;font-size:12px;font-weight:800;box-shadow:0 1px 2px #0000000a}
+.facts i small{display:block;font-size:10px;font-weight:600;color:var(--mute)}
+.sec-l{font-size:13px;font-weight:800;margin:16px 4px 8px}
+.quick{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.quick button{background:#fff;border-radius:16px;padding:12px;text-align:left;box-shadow:0 1px 2px #0000000a}
+.quick b{display:block;font-size:13px}
+.quick span{display:block;font-size:11px;color:var(--mute);margin-top:3px;line-height:1.3}
+.photos{display:flex;gap:8px;overflow:auto;margin:4px 0 8px}
+.photos::-webkit-scrollbar{height:0}
+.photos img{width:148px;height:92px;object-fit:cover;border-radius:14px;flex:none}
+.mitem{display:flex;width:100%;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--line);font-size:14px;font-weight:700;text-align:left}
+.mitem:last-child{border:0}
+.mitem span{color:var(--mute);font-weight:500;font-size:13px}
+.avatar{width:64px;height:64px;border-radius:22px;background:var(--gold);color:#111;display:grid;place-items:center;font-size:22px;font-weight:800;flex:none;position:relative;overflow:hidden}
+.avatar img{width:100%;height:100%;object-fit:cover;display:block}
+.avatar .cam{position:absolute;right:4px;bottom:4px;width:22px;height:22px;border-radius:8px;background:#21201f;color:#fff;font-size:11px;display:grid;place-items:center}
+.pcard{border-radius:20px;padding:16px;color:#fff;margin-bottom:8px;text-align:left;width:100%;position:relative;overflow:hidden}
+.pcard .k{font-size:12px;opacity:.85;font-weight:700}
+.pcard .sum{font-size:26px;font-weight:800;margin:6px 0 2px;letter-spacing:-.04em}
+.pcard .row2{display:flex;justify-content:space-between;font-size:13px;opacity:.95}
+.pcard.s{background:linear-gradient(160deg,#1677ff,#0a4bb0)}
+.pcard.p{background:linear-gradient(160deg,#21201f,#3a3936)}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+.grid3 button{aspect-ratio:1;border-radius:16px;overflow:hidden;background:#fff;border:3px solid transparent}
+.grid3 button.on{border-color:var(--gold)}
+.grid3 img{width:100%;height:100%;object-fit:cover;display:block}
+.prof{display:flex;align-items:center;gap:14px;background:#fff;border-radius:20px;padding:16px;margin:8px 0 12px;box-shadow:0 1px 3px #0000000c;text-align:left;width:100%}
+.prof .nm{font-size:18px;font-weight:800;letter-spacing:-.03em}
+.mini{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:#fff;border-radius:16px;padding:14px;margin-bottom:8px;box-shadow:0 1px 2px #0000000a}
+.mini .icw{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;flex:none}
+.mini .icw svg{width:22px;height:22px}
+.mini.skip .icw{background:#e8f1ff;color:var(--blue)}
+.mini.park .icw{background:#21201f;color:var(--gold)}
+.mini .chev{margin-left:auto;color:#c4c3bf;font-size:22px;font-weight:400}
+.tx small{display:block;color:var(--mute);font-size:11px;font-weight:500;margin-top:2px}
+.lock{width:64px;height:64px;border-radius:20px;background:#fff1ed;color:var(--hot);display:grid;place-items:center;font-size:28px;margin:18px auto 12px;font-weight:800}
+@media(max-width:980px){.page{grid-template-columns:1fr}.stage{position:relative;height:auto}}
+</style>
+</head>
+<body>
+<div class="page">
+  <aside class="stage">
+    <div class="kicker">MVP · главная · вход по желанию</div>
+    <h1>Главная · ски-пасс · парковка</h1>
+    <p class="sp">Вход по желанию. OTP макета — 1426. Ски-пасс: 40013838, парковка: E0040539. PIN нет — только длина номера и лимит попыток.</p>
+    <div class="scenarios">
+      <button onclick="run('home')">Главная</button>
+      <button onclick="run('step')">Степаново</button>
+      <button onclick="run('way')">Как доехать</button>
+      <button onclick="run('you')">Профиль</button>
+      <button onclick="run('name')">Имя</button>
+      <button onclick="run('photo')">Фото</button>
+      <button onclick="run('hist')">История</button>
+      <button onclick="run('lock')">Защита от перебора</button>
+      <button onclick="run('phone')">Телефон</button>
+      <button onclick="run('otp-new')">OTP · новый</button>
+      <button onclick="run('otp-old')">OTP · есть в базе</button>
+      <button onclick="run('skip-guest')">Ски-пасс гость</button>
+      <button onclick="run('skipass')">Ски-пасс вошёл</button>
+      <button onclick="run('parking')">Парковка</button>
+      <button onclick="run('paid')">Успех оплаты</button>
+    </div>
+    <div class="phone"><div class="phone-inner" id="app"></div><div class="homebar"></div></div>
+  </aside>
+  <main>
+    <div class="topbar"><div class="tabs">
+      <button class="on" id="t-tz" onclick="showDoc('tz')">ТЗ</button>
+      <button id="t-api" onclick="showDoc('api')">Ручки</button>
+      <button id="t-est" onclick="showDoc('est')">Сроки и деньги</button>
+    </div></div>
+    <article class="docs" id="doc"></article>
+  </main>
+</div>
+<script>
+const IMG={
+  volen:"https://images.unsplash.com/photo-1605540436563-5bca91957098?auto=format&fit=crop&w=1000&q=70",
+  step:"https://images.unsplash.com/photo-1551698618-1dfe5d97d256?auto=format&fit=crop&w=1000&q=70",
+  night:"https://images.unsplash.com/photo-1418985991508-e47386d96a71?auto=format&fit=crop&w=800&q=70",
+  lot:"https://images.unsplash.com/photo-1506521781263-d8422e82f27a?auto=format&fit=crop&w=800&q=70",
+  lodge:"https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=800&q=70"
+};
+const PHONE_PARK="+7 495 161-61-30";
+const KNOWN="79012883641";
+const ic={
+  home:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1z"/></svg>`,
+  skip:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="9" cy="12" r="2"/></svg>`,
+  park:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 19V7a2 2 0 0 1 2-2h7a5 5 0 0 1 0 10H7"/><path d="M5 19h14"/></svg>`,
+  user:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3"/><path d="M5 19a7 7 0 0 1 14 0"/></svg>`
+};
+const AV=[
+  "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=70",
+  "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=70",
+  "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=70",
+  "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=400&q=70",
+  "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=70",
+  "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=70"
+];
+const state={
+  tab:"home", view:null, sheet:null, auth:null, isNew:false,
+  user:null, phone:"+7 (901) 288-36-41", code:"", demo:"1426",
+  first:"Иван", last:"Гость", photo:null, pick:null,
+  resort:"volen", amount:3000, guestSkip:null, guestPark:null,
+  skip:{id:"12", masked:"4001 ···· 3838", rub:3240, bonus:1180},
+  park:{id:"p2", masked:"E004 ···· 0539", rub:400, park:"Волен"},
+  fails:0, lockUntil:0, txShown:{skip:3,park:3}
+};
+const CARD={skip:"40013838",park:"e0040539"};
+const TX={
+  skip:[
+    {t:"Турникет Волен, 1А",d:"31 авг, 11:20",n:-70},
+    {t:"Пополнение",d:"30 авг, 18:04",n:3000},
+    {t:"Касса, разовый",d:"30 авг, 10:12",n:-1200},
+    {t:"Турникет Степаново",d:"29 авг, 16:40",n:-90},
+    {t:"Турникет Волен, 3",d:"29 авг, 14:05",n:-70},
+    {t:"Пополнение",d:"24 авг, 09:18",n:1500},
+    {t:"Касса, безлимит 24",d:"23 авг, 12:00",n:-4990},
+    {t:"Турникет Волен, 1Б",d:"22 авг, 13:31",n:-70}
+  ],
+  park:[
+    {t:"Выезд, Волен",d:"31 авг, 19:10",n:-300},
+    {t:"Пополнение",d:"31 авг, 09:02",n:400},
+    {t:"Выезд, Степаново",d:"24 авг, 20:15",n:-400},
+    {t:"Пополнение",d:"20 авг, 11:40",n:600}
+  ]
+};
+function digits(){return state.phone.replace(/\D/g,"")}
+function uname(){return `${state.first||""} ${state.last||""}`.trim()||"Гость"}
+function rname(){return state.resort==="volen"?"Волен":"Степаново"}
+function mask(v){const d=v.replace(/\D/g,"").slice(0,11);const r=d.startsWith("7")?d.slice(1):d;let o="+7";if(r.length)o+=" ("+r.slice(0,3);if(r.length>=3)o+=") "+r.slice(3,6);if(r.length>=6)o+="-"+r.slice(6,8);if(r.length>=8)o+="-"+r.slice(8,10);return o}
+function rub(n){return n.toLocaleString("ru-RU")+" ₽"}
+function toast(m){const t=document.createElement("div");t.textContent=m;Object.assign(t.style,{position:"fixed",bottom:"22px",left:"50%",transform:"translateX(-50%)",background:"#21201f",color:"#fff",padding:"10px 14px",borderRadius:"12px",zIndex:99,fontSize:"13px",fontWeight:"800"});document.body.appendChild(t);setTimeout(()=>t.remove(),1800)}
+function hasSkip(){return !!(state.user||state.guestSkip)}
+function hasPark(){return !!(state.user||state.guestPark)}
+
+function tabbar(){
+  const items=[["home","Главная",ic.home],["skip","Ски-пасс",ic.skip],["park","Парковка",ic.park],["you","Профиль",ic.user]];
+  return `<nav class="tabbar">${items.map(([id,l,s])=>`<button class="${state.tab===id&&!state.view&&!state.auth?"on":""}" onclick="go('${id}')">${s}${l}</button>`).join("")}</nav>`;
+}
+function tog(){
+  return `<div class="toggle">
+    <button class="${state.resort==="volen"?"on":""}" onclick="state.resort='volen';render()">Волен</button>
+    <button class="${state.resort==="step"?"on":""}" onclick="state.resort='step';render()">Степаново</button>
+  </div>`;
+}
+function skipInfo(){
+  return `<div class="sec-l">Как устроен ски-пасс</div>
+    <div class="box">
+      <div class="row"><span>Парки</span><b>Волен и Степаново</b></div>
+      <div class="row"><span>Карта-носитель</span><b>100 ₽</b></div>
+      <div class="row"><span>Тайм-аут</span><b>${state.resort==="volen"?"2 мин":"5 мин"}</b></div>
+      <div class="row"><span>Разовый, будни</span><b>от 70 ₽</b></div>
+    </div>
+    <p class="hint">Карту выдают в кассе. Потерянную не восстанавливают.</p>`;
+}
+function parkInfo(){
+  const v=state.resort==="volen";
+  return `<div class="sec-l">Тариф ${rname()}</div>
+    <div class="box">
+      ${v?`<div class="row"><span>Пн–чт</span><b>200 ₽</b></div>
+      <div class="row"><span>Пт–вс</span><b>300 ₽</b></div>
+      <div class="row"><span>Первые 15 минут</span><span class="ok">бесплатно</span></div>`
+      :`<div class="row"><span>Пн–пт</span><b>300 ₽</b></div>
+      <div class="row"><span>Сб–вс</span><b>400 ₽</b></div>`}
+    </div>
+    <p class="hint">${v?"Касса, паркомат, в приложении.":"Касса, паркомат, терминал в шале."}</p>`;
+}
+function screenHome(){
+  if(state.view==="way") return viewWay();
+  const v=state.resort==="volen";
+  const skipHint=hasSkip()?rub(state.skip.rub):"Пополнить по номеру";
+  const parkHint=hasPark()?rub(state.park.rub):"Тариф и карта на въезд";
+  const hero=v?IMG.volen:IMG.step;
+  return `<div class="tophead">
+      <div class="logo">${v?"ВОЛЕН":"СТЕПАНОВО"}</div>
+    </div>
+    ${tog()}
+    <div class="hero-photo">
+      <img src="${hero}" alt="">
+      <div class="veil"></div>
+      <div class="cap"><em>сегодня · ${v?"−7° · снег":"−8° · снег"}</em><b>Парк ${rname()}</b></div>
+    </div>
+    <div class="facts">
+      <i>09:00–22:00<small>сегодня открыто</small></i>
+      <i>${v?"12":"8"} склонов<small>сезон открыт</small></i>
+      <i>${v?"ночь пт":"шаттл"}<small>${v?"подсветка 18:00":"4 рейса, по заявке"}</small></i>
+    </div>
+    <button class="act skip" onclick="go('skip')">
+      <div class="ico">${ic.skip}</div>
+      <div><b>Ски-пасс</b><span>${skipHint}</span></div>
+      <div class="chev">›</div>
+    </button>
+    <button class="act park" onclick="go('park')">
+      <div class="ico">${ic.park}</div>
+      <div><b>Парковка</b><span>${parkHint}</span></div>
+      <div class="chev">›</div>
+    </button>
+    <div class="sec-l">Полезно</div>
+    <div class="quick">
+      <button onclick="state.view='way';render()"><b>Как доехать</b><span>40 км · Яхрома</span></button>
+      <button onclick="toast(PHONE_PARK)"><b>Позвонить</b><span>${PHONE_PARK}</span></button>
+      <button onclick="go('park')"><b>Тариф парковки</b><span>${v?"от 200 ₽":"от 300 ₽"}</span></button>
+      <button onclick="go('skip')"><b>Правила карты</b><span>тайм-аут ${v?"2":"5"} мин</span></button>
+    </div>
+    <div class="photos">
+      <img src="${hero}" alt="">
+      <img src="${IMG.night}" alt="">
+      <img src="${v?IMG.lodge:IMG.lot}" alt="">
+    </div>`;
+}
+function viewWay(){
+  const v=state.resort==="volen";
+  return `<button class="back" onclick="state.view=null;render()">← Главная</button>
+    <div class="h1">Как доехать</div>
+    <p class="sub">Парк ${rname()} · Яхрома</p>
+    <div class="box"><b>На машине</b><p class="meta">Дмитровское шоссе ~40 км → Деденево → стела Волен → Животино: ${v?"направо на Волен":"прямо на Степаново"}</p></div>
+    <div class="box"><b>Электричка</b><p class="meta">До Яхромы, дальше маршрутка 9. От Дмитрова — автобус 38.</p></div>
+    <div class="box"><b>Шаттл Волен — Степаново</b><p class="meta">12:05 · 13:30 · 15:00 · 16:00, по заявке</p></div>
+    <button class="btn btn-y" onclick="toast('Яндекс Карты')">Открыть в картах</button>
+    <button class="btn btn-w" style="margin-top:8px" onclick="toast(PHONE_PARK)">Позвонить в парк</button>`;
+}
+function screenAuth(){
+  if(state.auth==="otp"){
+    return `<button class="back" onclick="state.auth='phone';state.code='';render()">← Другой номер</button>
+      <div class="hero"><div class="brand">ВОЛЕН</div>
+      <div class="h1">Код из звонка</div>
+      <p class="sub">Входящий на ${state.phone}</p></div>
+      <div class="otp">${[0,1,2,3].map(i=>`<input maxlength="1" id="c${i}" oninput="otp(${i})" value="${(state.code||"")[i]||""}">`).join("")}</div>
+      <button class="btn btn-b" onclick="verify()">Подтвердить</button>
+      <button class="btn btn-w" style="margin-top:8px" onclick="toast('SMS через 60 с')">Не дозвонились — SMS</button>
+      <p class="link" onclick="state.auth=null;render()">Продолжить без входа</p>`;
+  }
+  return `<button class="back" onclick="state.auth=null;render()">← Назад</button>
+    <div class="hero"><div class="brand">ВОЛЕН</div>
+    <div class="h1">Телефон</div>
+    <p class="sub">Пришлём код звонком</p></div>
+    ${phoneField()}
+    <button class="btn btn-y" onclick="sendOtp()">Продолжить</button>
+    <p class="link" onclick="state.auth=null;render()">Позже, без кабинета</p>`;
+}
+function phoneField(){
+  return `<div class="field"><span>тел.</span><input value="${state.phone}" oninput="state.phone=mask(this.value);this.value=state.phone"></div>`;
+}
+function locked(){return Date.now()<state.lockUntil}
+function txRow(x){
+  const pos=x.n>0;
+  return `<div class="tx"><span>${x.t}<small>${x.d}</small></span><b class="${pos?"ok":""}">${pos?"+":""}${rub(Math.abs(x.n)).replace(" ₽","")} ₽</b></div>`;
+}
+function txPreview(kind){
+  const list=TX[kind].slice(0,3);
+  return `<div class="sec-l">${kind==="skip"?"История":"Последние списания"}</div>
+    <div class="box">${list.map(txRow).join("")}</div>
+    <button class="btn btn-more" style="margin-top:8px" onclick="state.view='hist';render()">Показать ещё</button>`;
+}
+function viewHist(){
+  const kind=state.tab==="park"?"park":"skip";
+  const back=kind==="skip"?"Ски-пасс":"Парковка";
+  return `<button class="back" onclick="state.view=null;render()">← ${back}</button>
+    <div class="h1">История транзакций</div>
+    <p class="sub">${kind==="skip"?"Списания с турникетов и пополнения":"Въезды, выезды и пополнения"}</p>
+    <div class="box">${TX[kind].map(txRow).join("")}</div>`;
+}
+function viewLock(){
+  return `<div class="lock">!</div>
+    <div class="h1" style="text-align:center">Слишком много попыток</div>
+    <p class="sub" style="text-align:center">Номер не подошёл три раза. Подождите 15 минут или войдите по телефону.</p>
+    <button class="btn btn-y" style="margin-top:16px" onclick="openAuth()">Войти по телефону</button>
+    <button class="btn btn-w" style="margin-top:8px" onclick="go('home')">На главную</button>`;
+}
+function guestLookup(kind){
+  if(locked()) return viewLock();
+  const skip=kind==="skip";
+  const title=skip?"Ски-пасс":"Парковка";
+  const ph=skip?"Номер ски-пасса, 8–16 знаков":"Номер карты, 8–16 знаков";
+  const left=Math.max(0,3-state.fails);
+  return `<div class="h1">${title}</div>
+    <div class="field" style="margin-top:14px"><input placeholder="${ph}" id="cnum" maxlength="16" autocomplete="off"></div>
+    <button class="btn btn-y" onclick="tryCard('${kind}')">Посмотреть баланс</button>
+    <p class="hint">${state.fails?`Карта не найдена. Осталось попыток: ${left}.`:"После трёх ошибок — пауза 15 минут."}</p>
+    ${skip?skipInfo():parkInfo()}`;
+}
+function screenSkip(){
+  if(state.view==="topup") return viewTopup("skip");
+  if(state.view==="bind") return viewBind("skip");
+  if(state.view==="paid") return viewPaid("skip");
+  if(state.view==="hist") return viewHist();
+  if(state.view==="lock"||(locked()&&!hasSkip())) return viewLock();
+  if(!hasSkip()) return guestLookup("skip");
+  const s=state.skip;
+  return `<div class="h1">Ски-пасс</div>
+    <div class="wallet">
+      <div class="k">Карта ${s.masked}</div>
+      <div class="sum">${rub(s.rub)}</div>
+      <div class="row2"><span>бонусы ${rub(s.bonus)}</span><span>${rname()} и второй парк</span></div>
+    </div>
+    <button class="btn btn-y" onclick="state.view='topup';state.amount=3000;render()">Пополнить</button>
+    <button class="btn btn-w" style="margin-top:8px" onclick="state.view='bind';render()">Другая карта</button>
+    ${txPreview("skip")}
+    ${skipInfo()}`;
+}
+function screenPark(){
+  if(state.view==="topup") return viewTopup("park");
+  if(state.view==="bind") return viewBind("park");
+  if(state.view==="paid") return viewPaid("park");
+  if(state.view==="hist") return viewHist();
+  if(state.view==="lock"||(locked()&&!hasPark())) return viewLock();
+  if(!hasPark()) return guestLookup("park");
+  const p=state.park;
+  return `<div class="h1">Парковка</div>
+    <div class="wallet p-wallet">
+      <div class="k">${p.park} · карта ${p.masked}</div>
+      <div class="sum">${rub(p.rub)}</div>
+      <div class="row2"><span>активна, пока не выехали</span><span>${rname()}</span></div>
+    </div>
+    <button class="btn btn-y" onclick="state.view='topup';state.amount=400;render()">Пополнить парковку</button>
+    <button class="btn btn-w" style="margin-top:8px" onclick="state.view='bind';render()">Другая карта</button>
+    ${txPreview("park")}
+    ${parkInfo()}`;
+}
+function viewTopup(kind){
+  const title=kind==="skip"?"Пополнить ски-пасс":"Пополнить парковку";
+  const amounts=kind==="skip"?[1500,3000,5000]:[200,400,600];
+  return `<button class="back" onclick="state.view=null;render()">← Назад</button>
+    <div class="h1">${title}</div>
+    <div class="amt">${amounts.map(n=>`<button class="${state.amount===n?"on":""}" onclick="state.amount=${n};render()">${rub(n)}</button>`).join("")}</div>
+    <div class="field"><input type="number" placeholder="Своя сумма" value="${state.amount}" oninput="state.amount=+this.value||0"></div>
+    <div class="box"><div class="row"><span>К зачислению</span><b>${rub(state.amount||0)}</b></div><div class="row"><span>Комиссия</span><span>по тарифу платёжки</span></div></div>
+    <button class="btn btn-y" onclick="startPay()">Оплатить</button>`;
+}
+function viewBind(kind){
+  if(locked()) return viewLock();
+  return `<button class="back" onclick="state.view=null;render()">← Назад</button>
+    <div class="h1">Другая карта</div>
+    <div class="field"><input placeholder="Номер, 8–16 знаков" id="cnum" maxlength="16" autocomplete="off"></div>
+    <button class="btn btn-b" onclick="tryCard('${kind}')">Привязать</button>
+    <p class="hint">${state.fails?`Карта не найдена. Осталось попыток: ${Math.max(0,3-state.fails)}.`:"После трёх ошибок — пауза 15 минут."}</p>`;
+}
+function viewPaid(){
+  const n=state.amount;
+  return `<div class="done">✓</div>
+    <div class="h1" style="text-align:center">${rub(n)} зачислено</div>
+    <button class="btn btn-b" style="margin-top:18px" onclick="state.view=null;render()">На карту</button>`;
+}
+function screenYou(){
+  if(state.view==="name") return viewEditName();
+  if(state.view==="photo") return viewEditPhoto();
+  const extra=`<div class="sec-l">Парк</div>
+    <div class="box">
+      <button class="mitem" onclick="toast(PHONE_PARK)">Позвонить<span>${PHONE_PARK}</span></button>
+      <button class="mitem" onclick="state.tab='home';state.view='way';render()">Как доехать<span>${rname()}</span></button>
+      <button class="mitem" onclick="toast('Оферта на volen.ru')">Правила и оферта<span></span></button>
+    </div>`;
+  if(!state.user){
+    return `<div class="h1">Профиль</div>
+      <button class="btn btn-y" style="margin-top:16px" onclick="openAuth()">Войти или создать кабинет</button>
+      ${extra}`;
+  }
+  const ini=uname().split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
+  const av=state.photo
+    ?`<img src="${state.photo}" alt="">`
+    :ini;
+  return `<div class="h1">Профиль</div>
+    <div class="prof">
+      <button class="avatar" onclick="state.view='photo';state.pick=state.photo;render()">${av}<span class="cam">✎</span></button>
+      <div>
+        <div class="nm">${uname()}</div>
+        <p class="meta">${state.user.phone}</p>
+        <p class="link" style="margin-top:6px" onclick="state.view='name';render()">Изменить имя</p>
+      </div>
+    </div>
+    <div class="sec-l">Карты</div>
+    <button class="pcard s" onclick="go('skip')">
+      <div class="k">Ски-пасс · ${state.skip.masked}</div>
+      <div class="sum">${rub(state.skip.rub)}</div>
+      <div class="row2"><span>бонусы ${rub(state.skip.bonus)}</span><span>открыть ›</span></div>
+    </button>
+    <button class="pcard p" onclick="go('park')">
+      <div class="k">Парковка · ${state.park.park}</div>
+      <div class="sum">${rub(state.park.rub)}</div>
+      <div class="row2"><span>${state.park.masked}</span><span>открыть ›</span></div>
+    </button>
+    ${extra}
+    <button class="btn btn-w" style="margin-top:16px" onclick="logout()">Выйти</button>`;
+}
+function viewEditName(){
+  return `<button class="back" onclick="state.view=null;render()">← Профиль</button>
+    <div class="h1">Имя и фамилия</div>
+    <div class="field"><span>имя</span><input id="fn" value="${state.first||""}" maxlength="24"></div>
+    <div class="field"><span>фам.</span><input id="ln" value="${state.last||""}" maxlength="24"></div>
+    <button class="btn btn-y" onclick="saveName()">Сохранить</button>`;
+}
+function viewEditPhoto(){
+  const cur=state.pick||state.photo;
+  return `<button class="back" onclick="state.view=null;render()">← Профиль</button>
+    <div class="h1">Фото</div>
+    <p class="sub">Выберите аватар или снимите новое. В приложении — камера и галерея.</p>
+    <div class="grid3">${AV.map(u=>`<button class="${cur===u?"on":""}" onclick="state.pick='${u}';render()"><img src="${u}" alt=""></button>`).join("")}</div>
+    <button class="btn btn-w" onclick="toast('Камера')">Сделать снимок</button>
+    <button class="btn btn-y" style="margin-top:8px" onclick="savePhoto()">Сохранить</button>
+    ${state.photo?`<p class="link" onclick="state.photo=null;state.pick=null;state.view=null;render()">Убрать фото</p>`:""}`;
+}
+function saveName(){
+  const f=(document.getElementById("fn")||{}).value||"";
+  const l=(document.getElementById("ln")||{}).value||"";
+  if(!f.trim()){toast("Введите имя");return}
+  state.first=f.trim();state.last=l.trim();
+  if(state.user) state.user.name=uname();
+  state.view=null;toast("Сохранено");render();
+}
+function savePhoto(){
+  if(!state.pick){toast("Выберите фото");return}
+  state.photo=state.pick;state.view=null;toast("Фото обновлено");render();
+}
+function sheets(){
+  if(state.sheet!=="pay") return "";
+  return `<div class="sheet" onclick="if(event.target===this){state.sheet=null;render()}">
+    <div class="panel">
+      <div class="handle"></div>
+      <div class="h1" style="font-size:20px">Оплата</div>
+      <div class="payhead"><b>${rub(state.amount)}</b><span class="meta">Банковская карта</span></div>
+      <button class="btn btn-y" onclick="finishPay()">Оплатить в макете</button>
+      <button class="btn btn-w" style="margin-top:8px" onclick="state.sheet=null;render()">Отмена</button>
+    </div>
+  </div>`;
+}
+function render(){
+  let main;
+  if(state.auth) main=screenAuth();
+  else if(state.tab==="home") main=screenHome();
+  else if(state.tab==="skip") main=screenSkip();
+  else if(state.tab==="park") main=screenPark();
+  else main=screenYou();
+  document.getElementById("app").innerHTML=`<div class="app"><div class="status"><span>16:21</span><span>LTE  84%</span></div><div class="body">${main}</div>${tabbar()}${sheets()}</div>`;
+  if(state.auth==="otp"){const a=document.getElementById("c0");if(a)a.focus()}
+}
+function go(t){state.tab=t;state.view=null;state.sheet=null;state.auth=null;state.txShown={skip:3,park:3};render()}
+function openAuth(){state.auth="phone";state.code="";render()}
+function logout(){state.user=null;state.auth=null;state.tab="home";toast("Вышли · карты гостя на месте");render()}
+function sendOtp(){
+  if(digits().length<11){toast("Введите телефон");return}
+  state.isNew=digits()!==KNOWN;
+  state.auth="otp";state.code="";
+  toast(state.isNew?"Номера нет — создадим кабинет":"Номер найден — вход");
+  render();
+}
+function otp(i){const el=document.getElementById("c"+i);el.value=(el.value||"").replace(/\D/g,"").slice(-1);state.code=[0,1,2,3].map(n=>(document.getElementById("c"+n).value||"")).join("");if(el.value&&i<3)document.getElementById("c"+(i+1)).focus();if(state.code.length===4)verify()}
+function verify(){
+  if(state.code!==state.demo){toast("Код "+state.demo);return}
+  if(state.isNew){state.first="Новый";state.last="Гость"}
+  state.user={name:uname(),phone:state.phone,fresh:state.isNew};
+  state.auth=null;
+  toast(state.isNew?"Кабинет создан":"С возвращением");
+  if(state.tab==="you"||state.tab==="home") {/* stay */}
+  render();
+}
+function bindGuest(kind){tryCard(kind)}
+function tryCard(kind){
+  if(locked()){state.view="lock";render();return}
+  const raw=((document.getElementById("cnum")||{}).value||"").toLowerCase().replace(/[^a-z0-9]/g,"");
+  if(raw.length<8||raw.length>16){toast("Номер 8–16 знаков");return}
+  if(raw!==CARD[kind]){
+    state.fails+=1;
+    if(state.fails>=3){state.lockUntil=Date.now()+15*60*1000;state.view="lock";toast("Пауза 15 минут");render();return}
+    toast("Карта не найдена");render();return
+  }
+  state.fails=0;
+  const mask=raw.slice(0,4).toUpperCase()+" ···· "+raw.slice(-4);
+  if(kind==="skip"){state.guestSkip=true;state.skip.masked=mask}
+  else {state.guestPark=true;state.park.masked=mask;state.park.park=rname()}
+  state.view=null;
+  toast("Карта найдена");render();
+}
+function startPay(){if(!state.amount){toast("Сумма");return}state.sheet="pay";render()}
+function finishPay(){
+  state.sheet=null;
+  if(state.tab==="park") state.park.rub+=state.amount; else state.skip.rub+=state.amount;
+  state.view="paid";render();
+}
+function run(s){
+  state.sheet=null;state.view=null;state.auth=null;
+  if(s==="home"){state.user=null;state.tab="home";state.resort="volen";state.guestSkip=null;state.guestPark=null;state.fails=0;state.lockUntil=0}
+  if(s==="step"){state.tab="home";state.resort="step"}
+  if(s==="way"){state.tab="home";state.view="way"}
+  if(s==="you"){state.user={name:uname(),phone:"+7 (901) 288-36-41"};state.tab="you";state.guestSkip=true;state.guestPark=true}
+  if(s==="name"){state.user={name:uname(),phone:"+7 (901) 288-36-41"};state.tab="you";state.view="name"}
+  if(s==="photo"){state.user={name:uname(),phone:"+7 (901) 288-36-41"};state.tab="you";state.view="photo";state.pick=state.photo}
+  if(s==="hist"){state.user={name:uname(),phone:"+7 (901) 288-36-41"};state.tab="skip";state.view="hist";state.guestSkip=true}
+  if(s==="lock"){state.user=null;state.tab="skip";state.guestSkip=null;state.fails=3;state.lockUntil=Date.now()+15*60*1000;state.view="lock"}
+  if(s==="phone"){state.user=null;state.auth="phone";state.tab="you"}
+  if(s==="otp-new"){state.user=null;state.phone="+7 (903) 111-22-33";state.isNew=true;state.auth="otp";state.code="";state.tab="you"}
+  if(s==="otp-old"){state.user=null;state.phone="+7 (901) 288-36-41";state.isNew=false;state.auth="otp";state.code="";state.tab="you"}
+  if(s==="skip-guest"){state.user=null;state.tab="skip";state.view=null;state.guestSkip=null;state.fails=0;state.lockUntil=0}
+  if(s==="skipass"){state.user={name:"Иван Гость",phone:"+7 (901) 288-36-41"};state.tab="skip"}
+  if(s==="parking"){state.tab="park";state.view=null}
+  if(s==="paid"){state.tab="skip";state.amount=3000;state.view="paid";state.guestSkip=true}
+  render();
+}
+
+const DOCS={
+tz:`
+  <h2>ТЗ MVP: главная, вход по желанию, две карты</h2>
+  <p class="lead">Нативное приложение Flutter. Старт — главная без авторизации. Кабинет один флоу: телефон → OTP. Камеры, жильё, трассы, слоты, пуши — вне этой версии.</p>
+  <h3>1. Главная</h3>
+  <ol>
+    <li>Первый экран после запуска. Вход не спрашиваем.</li>
+    <li>Тумблер <b>Волен / Степаново</b>. Выбор пишется локально и уходит в <code>GET /v1/home?resort=</code>.</li>
+    <li>На экране: название парка, погода/статус сезона (если BFF отдаст; иначе статичный блок), две крупные кнопки <b>Ски-пасс</b> и <b>Парковка</b>.</li>
+    <li>Кнопки ведут на те же вкладки, что нижнее меню. Если карта уже известна — на кнопке баланс, иначе подпись «по номеру карты».</li>
+    <li>Нижнее меню всегда: Главная · Ски-пасс · Парковка · Профиль. В шапке главной нет бейджа телефона — кабинет во вкладке Профиль.</li>
+  </ol>
+  <h3>2. Авторизация = регистрация, один UX</h3>
+  <ol>
+    <li>Не обязательна. Гость смотрит главную, вводит номер карты, пополняет.</li>
+    <li>Один экран «Телефон». Нет отдельных «вход» и «регистрация», нет пароля.</li>
+    <li>Клиент шлёт <code>POST /v1/auth/otp/request { phone }</code>. Сервер ищет номер в базе (~67 тыс. старых пользователей).</li>
+    <li>Номер есть — OTP и вход. Номера нет — OTP, после кода создаём пользователя и сразу сессию.</li>
+    <li>На экране кода пользователь видит, новый это номер или нет (копия: «создадим кабинет» / «войдёте»).</li>
+    <li>Канал: звонок, запасной SMS. Код 4 цифры. В макете 1426.</li>
+    <li>Сессия: access + refresh JWT. Выход чистит токены, гостевые карты на устройстве можно оставить.</li>
+    <li>На каждом шаге — «продолжить без входа».</li>
+  </ol>
+  <p>Сверка со старыми учётками — по телефону. Пароль md5 из /mobile для этого флоу не нужен. E-mail не делаем.</p>
+  <h3>3. Пополнение ски-пасса</h3>
+  <ol>
+    <li>Гость: номер карты 8–16 знаков → lookup. PIN в этой версии нет.</li>
+    <li>После входа: список привязанных карт. Гостевую карту, если была, привязываем к user_id.</li>
+    <li>Баланс RUB и бонус из SPD (порт 55557), только с сервера Волена.</li>
+    <li>Пополнение: сумма → платёж → in-app browser → webhook → replenishmentCard → paid → обновить баланс.</li>
+    <li>История: на карточке 3 последние, кнопка «Показать ещё» открывает экран «История транзакций» с возвратом на ски-пасс / парковку.</li>
+    <li>Таймаут SPD — не показывать 0 ₽ как успех.</li>
+  </ol>
+  <h3>4. Парковка</h3>
+  <ol>
+    <li>Те же сценарии, что ски-пасс: длина номера, лимит попыток, история выездов, «Показать ещё».</li>
+    <li>type_id=2, порты 55558 Волен и 55560 Степаново. Текущий парк с тумблера главной.</li>
+    <li>Госномер как поле въезда — <b>не входит</b>. Тариф «15 минут» показываем текстом, сессию въезда не считаем.</li>
+  </ol>
+  <h3>5. Защита от перебора номеров</h3>
+  <ol>
+    <li>PIN пока не делаем. Номер: 8–16 символов, maxlength на поле, лишние знаки обрезаем.</li>
+    <li>3 неудачи с устройства — пауза 15 минут. Экран блокировки.</li>
+    <li>На BFF: лимит на IP и device-id, в ответе только маска и баланс, один текст «карта не найдена».</li>
+  </ol>
+  <h3>6. Профиль</h3>
+  <ol>
+    <li>Имя и фамилия — отдельный экран, <code>PATCH /v1/me</code>.</li>
+    <li>Фото — отдельный экран: пресеты, камера, галерея. Загрузка файла на BFF.</li>
+    <li>Карты в профиле — как кошельки: ски-пасс синий, парковка тёмная, баланс крупно.</li>
+  </ol>
+  <h3>Не делать в этом MVP</h3>
+  <ul>
+    <li>Пароль, отдельная регистрация, e-mail.</li>
+    <li>WebView /mobile как каркас.</li>
+    <li>Камеры, инструкторы, график, отель, карта курорта, пуши.</li>
+    <li>Прямой SPD с телефона. Публичный users?method=filter.</li>
+  </ul>
+  <h3>Приёмка</h3>
+  <ul>
+    <li>Холодный старт открывает главную, без экрана логина.</li>
+    <li>Тумблер меняет парк на главной и подпись порта парковки.</li>
+    <li>Известный телефон: после OTP — «с возвращением», карты кабинета.</li>
+    <li>Новый телефон: после OTP — пользователь в базе и сессия.</li>
+    <li>Гость вводит номер карты, видит баланс, тестовое пополнение доходит.</li>
+    <li>После входа гостевая карта видна в кабинете.</li>
+  </ul>
+`,
+api:`
+  <h2>ТЗ на API v1</h2>
+  <p class="lead">Полный контракт: файл <code>tz-api.html</code> и Word <code>ТЗ-API-v1-Волен.docx</code> (для Google Docs). Ниже — оглавление ручек. Клиент не ходит в /mobile/api.</p>
+  <p><b>База</b> <code>https://www.volen.ru/v1</code>. JSON, целые рубли, <code>X-Device-Id</code>, ошибки <code>{ error: { code, message } }</code>. SPD только с сервера: 55557 / 55558 / 55560.</p>
+  <table class="tbl">
+    <tr><th>Ручка</th><th>Кто</th><th>Смысл</th></tr>
+    <tr><td><code>POST /v1/auth/otp/request</code></td><td>гость</td><td>phone → exists, звонок/SMS, retry_after</td></tr>
+    <tr><td><code>POST /v1/auth/otp/verify</code></td><td>гость</td><td>код → JWT; нет user — создать</td></tr>
+    <tr><td><code>POST /v1/auth/refresh</code></td><td>—</td><td>новая пара, rotation</td></tr>
+    <tr><td><code>POST /v1/auth/logout</code></td><td>сессия</td><td>сжечь refresh</td></tr>
+    <tr><td><code>GET /v1/me</code></td><td>сессия</td><td>id, phone, имя, фото</td></tr>
+    <tr><td><code>PATCH /v1/me</code></td><td>сессия</td><td>first_name, last_name</td></tr>
+    <tr><td><code>POST /v1/me/photo</code></td><td>сессия</td><td>multipart jpeg/png</td></tr>
+    <tr><td><code>GET /v1/home</code></td><td>гость</td><td>resort, часы, сезон, превью карт</td></tr>
+    <tr><td><code>GET /v1/skipasses/lookup</code></td><td>гость</td><td>number 8–16; 404 / 429 после 3</td></tr>
+    <tr><td><code>POST /v1/skipasses</code></td><td>оба</td><td>привязка; с JWT — к user</td></tr>
+    <tr><td><code>GET /v1/skipasses</code></td><td>сессия</td><td>список карт кабинета</td></tr>
+    <tr><td><code>GET /v1/skipasses/{id}</code></td><td>оба</td><td>карточка</td></tr>
+    <tr><td><code>GET …/balance</code></td><td>оба</td><td>SPD getBalance, не 0 при таймауте</td></tr>
+    <tr><td><code>GET …/transactions</code></td><td>оба</td><td>история, page, has_more</td></tr>
+    <tr><td><code>/v1/parking-cards…</code></td><td>как ски-пасс</td><td>type_id=2, park, порты 55558/55560</td></tr>
+    <tr><td><code>POST /v1/payments</code></td><td>оба</td><td>card_id, amount, purpose → payment_url</td></tr>
+    <tr><td><code>GET /v1/payments/{id}</code></td><td>оба</td><td>pending | paid | failed</td></tr>
+    <tr><td><code>POST /v1/payments/webhook</code></td><td>платёжка</td><td>не клиент; replenishmentCard</td></tr>
+  </table>
+  <p>Закрыть <code>users?method=filter</code>. Приёмка и примеры JSON — в <code>tz-api.html</code>.</p>
+`,
+est:`
+  <h2>Сроки и стоимость</h2>
+  <p class="lead">Ставка: <b>200 000 ₽ / мес.</b> ≈ 21 рабочий день. День ≈ <b>9 500 ₽</b>.</p>
+  <p>Пароля нет — auth короче. Появились главная и гостевой lookup. Итог по клиенту почти тот же.</p>
+  <h3>Flutter (200 тыс. / мес.)</h3>
+  <table class="tbl">
+    <tr><th>Блок</th><th>Состав</th><th>Дни</th></tr>
+    <tr><td>Каркас</td><td>навигация 4 вкладки, dio, secure storage, stage/prod</td><td>4–6</td></tr>
+    <tr><td>Главная</td><td>тумблер парка, статус, две кнопки, гость/сессия</td><td>3–5</td></tr>
+    <tr><td>Вход по телефону</td><td>один флоу OTP, exists/created, без пароля, выход</td><td>4–6</td></tr>
+    <tr><td>Ски-пасс</td><td>гость lookup, кабинет, баланс, история, in-app browser</td><td>10–14</td></tr>
+    <tr><td>Парковка</td><td>те же экраны, порт от выбранного парка</td><td>3–5</td></tr>
+    <tr><td>Стабилизация</td><td>QA, TestFlight / внутренний Android</td><td>4–6</td></tr>
+    <tr><td><b>Итого Flutter</b></td><td></td><td><b>28–42 дня</b></td></tr>
+  </table>
+  <div class="money">
+    <div class="meta">только клиент, BFF готов</div>
+    <div class="big">265–400 тыс. ₽</div>
+  </div>
+  <h3>BFF (тот же уровень 200 тыс.)</h3>
+  <table class="tbl">
+    <tr><th>Блок</th><th>Дни</th></tr>
+    <tr><td>OTP: поиск по телефону, create-or-login, JWT, закрыть users filter</td><td>6–9</td></tr>
+    <tr><td>home + lookup карт без сессии</td><td>3–5</td></tr>
+    <tr><td>SPD ски-пасс + привязка к user после входа</td><td>8–12</td></tr>
+    <tr><td>Парковка (два порта)</td><td>3–5</td></tr>
+    <tr><td>Платежи, гость и сессия, webhook</td><td>6–9</td></tr>
+    <tr><td>Stage, OpenAPI</td><td>3–5</td></tr>
+    <tr><td><b>Итого BFF</b></td><td><b>29–45 дней</b></td></tr>
+  </table>
+  <div class="money">
+    <div class="meta">только сервер</div>
+    <div class="big">275–430 тыс. ₽</div>
+  </div>
+  <h3>Продукт целиком</h3>
+  <table class="tbl">
+    <tr><th>Схема</th><th>Календарь</th><th>ФОТ 200к</th></tr>
+    <tr><td>Один человек, сначала BFF</td><td>≈ 3–4 мес.</td><td>≈ 540–830 тыс. ₽</td></tr>
+    <tr><td>Двое параллельно</td><td>≈ 1,5–2 мес.</td><td>≈ 600–800 тыс. ₽</td></tr>
+  </table>
+  <p>Закладывайте <b>~1,5–2 месяца вдвоём</b>. Буфер 20% на Контур и платёжку. Не входят сторы, лицензии, доступы SPD у Михаила.</p>
+  <h3>Порядок</h3>
+  <ol>
+    <li>Неделя 1: OpenAPI, stage, закрыть users filter, контракт otp/request с exists.</li>
+    <li>Недели 2–4: verify create-or-login; Flutter — главная + телефон.</li>
+    <li>Недели 4–7: lookup, баланс, оплата, парковка, склейка гостевой карты после входа.</li>
+    <li>Неделя 8: приёмка, внутренние сборки.</li>
+  </ol>
+`};
+function showDoc(id){document.getElementById("doc").innerHTML=DOCS[id];document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("on"));document.getElementById("t-"+id).classList.add("on")}
+showDoc("tz");render();
+</script>
+</body>
+</html>
